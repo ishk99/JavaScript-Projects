@@ -1,67 +1,80 @@
-let random = (max,min) => Math.floor(Math.random() * (max-min) + min);
-let firstCard = random(2,21);
-let secondCard = random(2,21);
-let cards = [firstCard, secondCard]
-let sum = firstCard + secondCard
-let hasBlackJack = false
-let isAlive = true
-let message = ""
-let messageEl = document.getElementById('message-el');
-let sumEl = document.getElementById('sum-el');
-let cardsEl = document.getElementById('cards-el');
-let player = {
-    name: "Per",
-    chips: 56
-    // let playerEl = document.getElementById("player-el");
-    // playerEl.textContent = playerName + ":$" + playerChips;
-}
-let playerEl = document.getElementById("player-el");
-playerEl.textContent = player.name + " :$ " + player.chips;
+let myLeads = [];
 
+const  inputEl = document.getElementById('input-el');
+// const val = document.querySelector('input-el').value;
+let inputBtn = document.getElementById("input-btn");
+const ulEl = document.getElementById("ul-el");
+const delBtn = document.getElementById("delete-btn");
+const tabBtn = document.getElementById("tab-btn");
 
-function startgame(){
-    rendergame();
+// getting leads from local storage
+const leadsFromLocalStorage = JSON.parse(localStorage.getItem("myLeads"));
+// check if leads from local storage is truthy..
+if (leadsFromLocalStorage){
+    myLeads = leadsFromLocalStorage;
+    render(myLeads);
 }
 
+// const tabs = [
+//     {url: "https://stackoverflow.com/questions/6798100/javascript-clear-dom"}
+// ]
 
-function rendergame(){
-    
-    cardsEl.textContent = "Cards: ";
-    for(let i = 0;i < cards.length; i++){
-        cardsEl.textContent += cards[i] + " ";
-    }
-    if(sum <= 20){
-    messageEl.textContent = "Want to draw another card 🖐 ?";
-    sumEl.textContent = "Sum: " + sum;
-    
-    // isAlive = true;
-    }
+tabBtn.addEventListener('click', function () {
 
-    else if(sum === 21){
-        messageEl.textContent ="Wohoo! You've got a BlackJack 👑 !";
-        hasBlackJack = true;
-       
-        sumEl.textContent = "Sum: " + sum;
-    }
-    else{
-        messageEl.textContent ="You're out of the game 😲 !";
-       
-        sumEl.textContent = "Sum: " + sum;
-        isAlive = false;
-    }
-    // sum = 0;
-    // console.log(message);
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        console.log(tabs);
+        console.log(tabs.url);
+        myLeads.push(tabs[0].url);
+        localStorage.setItem("myLeads", JSON.stringify(myLeads));
+        render(myLeads)
+
+    })
+
+})
+
+
+function render(arr) {
+    // console.log("rendering leads");
+    let listItems = '';
+    for(let i = 0; i < arr.length; i++){
+        listItems += `
+        <li>
+            <a target='_blank' href='${arr[i]}'>
+                ${arr[i]}
+            </a>
+        </li>
+        `
+        // console.log("rendering leads")
+    }  
+    ulEl.innerHTML = listItems;
+    // let rec = 'James'; let rep = 'Per';
+    // const str = `Hey ${rec}. How is it Going? Cheers ${rep}!`;
+    // console.log(str);
 }
 
-function newgame() {
-    // console.log("Drawing another card!");
+// adding double click event on EventListener
+delBtn.addEventListener('dblclick', function () {
+    //clear local storage and DOM.
+    localStorage.clear();
+    myLeads = [];
+    render(myLeads);
 
-    if(isAlive === true && hasBlackJack  === false){
-       let cardSum = random(2,21);
-        sum += cardSum;
-        cards.push(cardSum);
-        console.log(cards);
-        rendergame();
-    }
-    
-}
+})
+
+inputBtn.addEventListener("click", function() {
+    myLeads.push(inputEl.value);
+    // console.log("Button Clicked");
+    // console.log(myLeads);
+    inputEl.value = "";
+    // saving leads to local storage
+    localStorage.setItem("myLeads", JSON.stringify(myLeads));
+    render(myLeads);
+
+    // verifying if local storage works
+    console.log(localStorage.getItem("myLeads"));
+})
+
+// rendering the leads on the page
+
+
+
